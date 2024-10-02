@@ -19,5 +19,16 @@ namespace Interview.Controllers
             var li=bill.All(id);
             return Json(li);
         }
+        public JsonResult SearchClients(string searchTerm)
+        {
+            var li=bill.SearchClients(searchTerm);
+            return Json(li);
+        }
+        [HttpPost]
+        public JsonResult UpdateItem(int id,int client,decimal capacity,decimal rate)
+        {
+            var li=bill.UpdateItem(id, client, capacity, rate);
+            return Json(li);
+        }
     }
 }

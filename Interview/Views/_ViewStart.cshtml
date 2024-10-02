@@ -1,3 +1,223 @@
 ﻿@{
     Layout = "_Layout";
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item List Table</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+
+            </div>
+            <div class="col-md-6">
+                <h8 class="text-center">Search :</h8>
+                <input type="text" class="form-control" id="search" name="client" placeholder="Search ..">
+            </div>
+        </div>
+        <h1 class="text-center">Bill List</h1>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Client</th>
+                    <th>Capacity</th>
+                    <th>Rate</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="itemList">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemModalLabel">Item Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Client:</strong> <span id="modalClient"></span></p>
+                    <p><strong>Capacity:</strong> <span id="modalCapacity"></span></p>
+                    <p><strong>Rate:</strong> <span id="modalRate"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModalLabel">Update Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm">
+                        <div class="form-group">
+                            <label for="updateClient">Client</label>
+                            <input type="text" class="form-control" id="updateClient" name="client">
+                        </div>
+                        <div class="form-group">
+                            <label for="updateCapacity">Capacity</label>
+                            <input type="text" class="form-control" id="updateCapacity" name="capacity">
+                        </div>
+                        <div class="form-group">
+                            <label for="updateRate">Rate</label>
+                            <input type="text" class="form-control" id="updateRate" name="rate">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveChanges">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            
+            $.ajax({
+                url: 'OpeningBillController1/Getdata',
+                method: 'GET',
+                data: { id: 2 },
+                success: function (items) {
+                    items.forEach(item => {
+                        $('#itemList').append(`
+                                                    <tr>
+                                                        <td>${item.id}</td>
+                                                        <td>${item.client}</td>
+                                                        <td>${item.capacity}</td>
+                                                        <td>${item.rate}</td>
+                                                        <td>
+                                                          <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">Delete</button>
+                                                          <button class="btn btn-primary btn-sm" onclick="updateItem(${item.id}, '${item.client}', '${item.capacity}', '${item.rate}')">Update</button>
+                                                          <button class="btn btn-info btn-sm" onclick="viewItem(${item.id}, '${item.client}', '${item.capacity}', '${item.rate}')">View</button>
+                                                        </td>
+                                                    </tr>
+                                                `);
+                    });
+                },
+                error: function (err) {
+                    console.error(err);
+                }
+            });
+        });
+
+        function viewItem(id, client, capacity, rate) {
+            
+            $('#modalClient').text(client);
+            $('#modalCapacity').text(capacity);
+            $('#modalRate').text(rate);
+
+            
+            $('#itemModal').modal('show');
+        }
+
+        function updateItem(id, client, capacity, rate) {
+            
+            $('#updateClient').val(client);
+            $('#updateCapacity').val(capacity);
+            $('#updateRate').val(rate);
+
+            
+            $('#saveChanges').off('click').on('click', function () {
+                const updatedClient = $('#updateClient').val();
+                const updatedCapacity = $('#updateCapacity').val();
+                const updatedRate = $('#updateRate').val();
+
+                
+                $.ajax({
+                    url: 'OpeningBillController1/UpdateItem',
+                    method: 'POST',
+                    data: {
+                        id: id,
+                        client: updatedClient,
+                        capacity: updatedCapacity,
+                        rate: updatedRate
+                    },
+                    success: function (response) {
+                        alert('Item updated successfully');
+                        location.reload(); 
+                    },
+                    error: function (err) {
+                        console.error('Update failed', err);
+                    }
+                });
+            });
+
+           
+            $('#updateModal').modal('show');
+        }
+        $('#search').on('keyup', function () {
+            let searchValue = $(this).val();
+
+            
+            if (searchValue.length > 0) {
+                $.ajax({
+                    url: '/OpeningBillController1/SearchClients', 
+                    method: 'GET',
+                    data: { searchTerm: searchValue }, 
+                    success: function (response) {
+                        $('#itemList').empty();
+                        if (response.length > 0) {
+                            
+                            response.forEach(item => {
+                                $('#itemList').append(`
+                                                            <tr>
+                                                                <td>${item.id}</td>
+                                                                <td>${item.client}</td>
+                                                                <td>${item.capacity}</td>
+                                                                <td>${item.rate}</td>
+                                                                <td>
+                                                                  <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">Delete</button>
+                                                                  <button class="btn btn-primary btn-sm" onclick="updateItem(${item.id}, '${item.client}', '${item.capacity}', '${item.rate}')">Update</button>
+                                                                  <button class="btn btn-info btn-sm" onclick="viewItem(${item.id}, '${item.client}', '${item.capacity}', '${item.rate}')">View</button>
+                                                                </td>
+                                                            </tr>
+                                                        `);
+                            });
+                        } else {
+                            $('#itemList').append(`<td>No results found</td>`);
+                        }
+                    },
+                    error: function (err) {
+                        console.error('Error fetching clients', err);
+                    }
+                });
+            } else {
+                
+                $('#clientList').empty();
+            }
+        });
+
+        function deleteItem(id) {
+            alert(`Delete item with ID: ${id}`);
+            
+        }
+    </script>
+</body>
+</html>

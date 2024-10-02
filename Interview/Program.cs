@@ -1,4 +1,6 @@
 using Interview.Data;
+using Interview.Repository;
+using Interview.Service;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,7 @@ builder.Services.AddDbContext<BillContext>(options =>
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     options.UseSqlServer(connectionString);
 });
+builder.Services.AddScoped<IBill, RBill>();
 
 var app = builder.Build();
 
